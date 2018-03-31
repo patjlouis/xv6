@@ -12,7 +12,9 @@ USER_PROGS := \
 	mkdir\
 	rm\
 	sh\
+	null\
 	stressfs\
+	shmem_count_exec_helper\
 	tester\
 	usertests\
 	wc\
