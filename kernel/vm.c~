@@ -333,12 +333,12 @@ copyuvm(pde_t *pgdir, uint sz, struct proc *p)
   }
   
   for(i = 0; i < 4; ++i) {
-    p->shared_pages_va[i] = proc->shared_pages_va[i];
-    if(p->shared_pages_va[i] != 0)
-      shmem_addr_count[i]++;
+    proc->shared_pages_va[i] = p->shared_pages_va[i];
+    if(proc->shared_pages_va[i] != 0)
+      // shmem_addr_count[i]++;
+      p->alloc_count = p->alloc_count + 1;
   }
-  p->alloc_count = proc->alloc_count;
-  
+  proc->alloc_count = p->alloc_count;
   return d;
 
 bad:

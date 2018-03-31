@@ -135,24 +135,26 @@ fork(void)
     return -1;
 
   // Copy process state from p.
-  if((np->pgdir = copyuvm(proc->pgdir, proc->sz)) == 0){
+  if((np->pgdir = copyuvm(proc->pgdir, proc->sz, np)) == 0){
     kfree(np->kstack);
     np->kstack = 0;
     np->state = UNUSED;
     return -1;
   }
+
   np->sz = proc->sz;
   np->parent = proc;
   *np->tf = *proc->tf;
 
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
-
+  
   for(i = 0; i < NOFILE; i++)
     if(proc->ofile[i])
       np->ofile[i] = filedup(proc->ofile[i]);
   np->cwd = idup(proc->cwd);
- 
+  
+  
   pid = np->pid;
   np->state = RUNNABLE;
   safestrcpy(np->name, proc->name, sizeof(proc->name));
@@ -223,7 +225,14 @@ wait(void)
         pid = p->pid;
         kfree(p->kstack);
         p->kstack = 0;
-        freevm(p->pgdir);
+        deallocuvm(p->pgdir, USERTOP - p->alloc_count * PGSIZE, 0);
+        // freevm(p->pgdir);
+        int i;
+        for(i = 0; i < 4; ++i) {
+            if(p->shared_pages_va[i] != 0) {
+              shmem_set_count(i);
+            }
+        }
         p->state = UNUSED;
         p->pid = 0;
         p->parent = 0;
@@ -442,5 +451,6 @@ procdump(void)
     cprintf("\n");
   }
 }
+
 
 
